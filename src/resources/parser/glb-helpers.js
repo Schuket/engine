@@ -87,13 +87,13 @@ Object.assign(pc, function () {
     };
 
     GLBHelpers.BuffersLoader._onProcessURIload = function (loader, result) {
-        loader._context.buffers[idx] = result;
+        loader._context.buffers.push(result);
         loader.progressLoading();
     };
 
     GLBHelpers.BuffersLoader._onXHRload = function (loader, e) {
         // response is unsigned 8 bit integer
-        loader._context.buffers[idx] = this.response;
+        loader._context.buffers.push(this.response);
         loader.progressLoading();
     };
 
@@ -708,15 +708,15 @@ Object.assign(pc, function () {
         return data;
     }
 
-    var calculateIndices = function () {
+    var calculateIndices = function (numVertices) {
         var dummyIndices = new Uint16Array(numVertices);
-        for (i = 0; i < numVertices; i++) {
+        for (var i = 0; i < numVertices; i++) {
             dummyIndices[i] = i;
         }
         return dummyIndices;
     };
 
-    var extractAttribute = function (decoder, uniqueId) {
+    var extractAttribute = function (decoder, outputGeometry, decoderModule, numPoints, uniqueId) {
         var attribute = decoder.GetAttributeByUniqueId(outputGeometry, uniqueId);
         var attributeData = new decoderModule.DracoFloat32Array();
         decoder.GetAttributeFloatForAllPoints(outputGeometry, attribute, attributeData);
@@ -834,21 +834,21 @@ Object.assign(pc, function () {
                     if (extDraco.hasOwnProperty('attributes')) {
                         var dracoAttribs = extDraco.attributes;
                         if (dracoAttribs.hasOwnProperty('POSITION'))
-                            positions = extractAttribute(decoder, dracoAttribs.POSITION);
+                            positions = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.POSITION);
                         if (dracoAttribs.hasOwnProperty('NORMAL'))
-                            normals   = extractAttribute(decoder, dracoAttribs.NORMAL);
+                            normals   = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.NORMAL);
                         if (dracoAttribs.hasOwnProperty('TANGENT'))
-                            tangents  = extractAttribute(decoder, dracoAttribs.TANGENT);
+                            tangents  = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.TANGENT);
                         if (dracoAttribs.hasOwnProperty('TEXCOORD_0'))
-                            texCoord0 = extractAttribute(decoder, dracoAttribs.TEXCOORD_0);
+                            texCoord0 = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.TEXCOORD_0);
                         if (dracoAttribs.hasOwnProperty('TEXCOORD_1'))
-                            texCoord1 = extractAttribute(decoder, dracoAttribs.TEXCOORD_1);
+                            texCoord1 = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.TEXCOORD_1);
                         if (dracoAttribs.hasOwnProperty('COLOR_0'))
-                            colors    = extractAttribute(decoder, dracoAttribs.COLOR_0);
+                            colors    = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.COLOR_0);
                         if (dracoAttribs.hasOwnProperty('JOINTS_0'))
-                            joints    = extractAttribute(decoder, dracoAttribs.JOINTS_0);
+                            joints    = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.JOINTS_0);
                         if (dracoAttribs.hasOwnProperty('WEIGHTS_0'))
-                            weights   = extractAttribute(decoder, dracoAttribs.WEIGHTS_0);
+                            weights   = extractAttribute(decoder, outputGeometry, decoderModule, numPoints, dracoAttribs.WEIGHTS_0);
                     }
 
                     if (geometryType == decoderModule.TRIANGULAR_MESH) {
@@ -913,7 +913,7 @@ Object.assign(pc, function () {
 
             if (positions !== null && normals === null) {
                 // pc.calculateNormals needs indices so generate some if none are present
-                normals = pc.calculateNormals(positions, (indices === null) ? calculateIndices() : indices);
+                normals = pc.calculateNormals(positions, (indices === null) ? calculateIndices(positions.length) : indices);
             }
 
             var vertexDesc = [];
