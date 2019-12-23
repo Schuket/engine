@@ -116,11 +116,12 @@ Object.assign(pc, function () {
                 if (asset.resources.length > 1) {
                     for (var i = 0; i < asset.resources.length; i++) {
                         self.animations[asset.resources[i].name] = asset.resources[i];
+                        self.animationsIndex[asset.id] = asset.resources[i].name;
                     }
                 } else {
                     self.animations[asset.name] = asset.resource;
+                    self.animationsIndex[asset.id] = asset.name;
                 }
-                self.animationsIndex[asset.id] = asset.name;
                 /* eslint-disable no-self-assign */
                 self.animations = self.animations; // assigning ensures set_animations event is fired
                 /* eslint-enable no-self-assign */
