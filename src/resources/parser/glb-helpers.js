@@ -1237,9 +1237,13 @@ Object.assign(pc, function () {
         anim.loop = true;
         anim.setName(data.hasOwnProperty('name') ? data.name : ("animation_" + this._id));
 
+        // calculate animation time
+
         var gltf = context.gltf;
         var nodesMap = {};
         var node = null;
+        var timeMin = Number.POSITIVE_INFINITY;
+        var timeMax = Number.NEGATIVE_INFINITY;
 
         for (var channel, idx = 0; idx < data.channels.length; idx++) {
             channel = data.channels[idx];
@@ -1274,7 +1278,15 @@ Object.assign(pc, function () {
                     // console.log("GLB animations for weights not supported");
                     break;
             }
+
+            // update animation time
+            for (var i = 0; i < times.length; ++i) {
+                timeMin = Math.min(timeMin, times[i]);
+                timeMax = Math.max(timeMax, times[i]);
+            }
         }
+
+        anim.duration = timeMax - timeMin;
 
         if (data.hasOwnProperty('extras') && context.processAnimationExtras) {
             context.processAnimationExtras(anim, data.extras);
